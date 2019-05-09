@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  ubuntu:
+    build: ./docker
+    volumes:
+      - ./:/src:cached
+      # exclude volumes
+      - /src/.*
