@@ -54,3 +54,4 @@ dkms.conf
 9cc
 tmp
 tmp.s
+cmake-build-debug
