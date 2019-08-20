@@ -5,5 +5,3 @@ services:
     build: ./docker
     volumes:
       - ./:/src:cached
-      # exclude volumes
-      - /src/.*
