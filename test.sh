@@ -21,5 +21,6 @@ gcc -o 9cc 9cc.c
 
 try 43 "12+31"
 try 42 42
+try 41 " 12 + 34 - 5 "
 
 echo OK
