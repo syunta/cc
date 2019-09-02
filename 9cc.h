@@ -51,3 +51,5 @@ int expect_number();
 Token *tokenize();
 
 Node *expr();
+
+void gen(Node *node);
