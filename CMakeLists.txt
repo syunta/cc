@@ -4,4 +4,6 @@ project(9cc C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(9cc
-        main.c)
+        main.c
+        tokenize.c
+        parse.c)
