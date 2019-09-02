@@ -4,4 +4,4 @@ project(9cc C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(9cc
-        9cc.c)
+        main.c)
