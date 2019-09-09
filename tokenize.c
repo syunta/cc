@@ -22,6 +22,14 @@ void error_at(char *loc, char *fmt, ...) {
     exit(1);
 }
 
+void error(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 bool consume(char *op) {
     if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
         return false;
@@ -29,8 +37,16 @@ bool consume(char *op) {
     return true;
 }
 
+Token *consume_ident() {
+    if (token->kind != TK_IDENT)
+        return NULL;
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 void expect(char *op) {
-    if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
+    if (token->kind != TK_RESERVED || strlen(op) != token->len || strncmp(token->str, op, token->len))
         error_at(token->str, "'%s'ではありません", op);
     token = token->next;
 }
@@ -78,8 +94,13 @@ Token *tokenize() {
             continue;
         }
 
-        if (strchr("+-*/()<>", *p)) {
+        if (strchr("+-*/()<>=", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+
+        if ('a' <= *p && *p <= 'z') {
+            cur = new_token(TK_IDENT, cur, p++, 1);
             continue;
         }
 
@@ -88,6 +109,11 @@ Token *tokenize() {
             char *q = p;
             cur->val = strtol(p, &p, 10);
             cur->len = p - q;
+            continue;
+        }
+
+        if (*p == ';') {
+            cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
 
