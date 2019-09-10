@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Tokenizer
+
 typedef enum {
     TK_RESERVED,
     TK_IDENT,
@@ -21,6 +23,8 @@ struct Token {
     char *str;
     int len;
 };
+
+// Parser
 
 typedef enum {
     ND_ADD, // +
@@ -46,9 +50,19 @@ struct Node {
     int offset; // for ND_LVAR
 };
 
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;
+    char *name;
+    int len;
+    int offset;
+};
+
+// Tokenizer
+
 extern Token *token;
 extern char *user_input;
-extern Node *code[100];
 
 void error(char *fmt, ...);
 
@@ -60,6 +74,14 @@ int expect_number();
 Token *tokenize();
 bool at_eof();
 
+// Parser
+
+extern Node *code[100];
+extern LVar *locals;
+
+void initialize_locals();
 void program();
+
+// Generator
 
 void gen(Node *node);

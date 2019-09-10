@@ -47,5 +47,6 @@ try 5 'a=2;b=3;a+b;'
 try 10 'a=12;b=8;c=2;(a+b)/c;'
 try 4 'a = 1; b = a + 3; b;'
 try 9 'a=b=c=3 ;a + b + c;'
+try 7 'foo = 4; bar = 3; foo + bar;'
 
 echo OK
