@@ -31,7 +31,7 @@ void error(char *fmt, ...) {
 }
 
 bool consume(char *op) {
-    if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
+    if (token->kind != TK_RESERVED || strlen(op) != token->len || strncmp(token->str, op, token->len))
         return false;
     token = token->next;
     return true;
@@ -80,6 +80,13 @@ bool is_alpha(char p) {
     return ('a' <= p && p <= 'z') || ('A' <= p && p <= 'Z') || p == '_';
 }
 
+bool is_alnum(char p) {
+    return ('a' <= p && p <= 'z') ||
+        ('A' <= p && p <= 'Z') ||
+        ('0' <= p && p <= '9') ||
+        p == '_';
+}
+
 Token *tokenize() {
     char *p = user_input;
     Token head;
@@ -95,6 +102,12 @@ Token *tokenize() {
         if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
             cur = new_token(TK_RESERVED, cur, p, 2);
             p += 2;
+            continue;
+        }
+
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            cur = new_token(TK_RESERVED, cur, p, 6);
+            p += 6;
             continue;
         }
 
