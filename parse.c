@@ -17,6 +17,14 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+Node *new_if(Node *pred, Node *con) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_IF;
+    node->pred = pred;
+    node->con = con;
+    return node;
+}
+
 Node *new_node_num(int val) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
@@ -61,11 +69,17 @@ Node *stmt() {
 
     if (consume("return")) {
         node = new_node(ND_RETURN, expr(), NULL);
+        expect(";");
+    } else if (consume("if")) {
+        expect("(");
+        Node *predicate = expr();
+        expect(")");
+        Node *consequent = stmt();
+        node = new_if(predicate, consequent);
     } else {
         node = expr();
+        expect(";");
     }
-
-    expect(";");
     return node;
 }
 

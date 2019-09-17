@@ -37,6 +37,7 @@ typedef enum {
     ND_LE, // <=
     ND_ASSIGN, // =
     ND_RETURN, // return
+    ND_IF, // if
     ND_LVAR, // local variable
     ND_NUM, // Integer
 } NodeKind;
@@ -47,6 +48,11 @@ struct Node {
     NodeKind kind;
     Node *lhs;
     Node *rhs;
+
+    // if
+    Node *pred;
+    Node *con;
+
     int val; // for ND_NUM
     int offset; // for ND_LVAR
 };
@@ -85,4 +91,5 @@ void program();
 
 // Generator
 
+extern int label_count;
 void gen(Node *node);

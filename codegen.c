@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+int label_count = 0;
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
         error("代入の左辺値が変数ではありません");
@@ -41,6 +43,16 @@ void gen(Node *node) {
             printf("  mov rsp, rbp\n");
             printf("  pop rbp\n");
             printf("  ret\n");
+            return;
+        case ND_IF:
+            gen(node->pred);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            int c = label_count;
+            label_count++;
+            printf("  je  .Lend%d\n", c);
+            gen(node->con);
+            printf(".Lend%d:\n", c);
             return;
     }
 
