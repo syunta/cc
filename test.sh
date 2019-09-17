@@ -54,5 +54,6 @@ try 10 'if (4 == 5) 3; 10;'
 try 5 'a=3; if (1) if (1) a=5; a;'
 try 1 'a=0; if (1) a=a+1; else a=a+2; a;'
 try 2 'a=0; if (0) a=a+1; else a=a+2; a;'
+try 10 'a=0; while (a < 10) a=a+1; a;'
 
 echo OK

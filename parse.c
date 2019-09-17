@@ -26,6 +26,14 @@ Node *new_if(Node *pred, Node *con, Node *alt) {
     return node;
 }
 
+Node *new_loop(Node *pred, Node *body) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LOOP;
+    node->pred = pred;
+    node->body = body;
+    return node;
+}
+
 Node *new_node_num(int val) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
@@ -82,6 +90,12 @@ Node *stmt() {
         } else {
             node = new_if(predicate, consequent, NULL);
         }
+    } else if (consume("while")) {
+        expect("(");
+        Node *predicate = expr();
+        expect(")");
+        Node *body = stmt();
+        node = new_loop(predicate, body);
     } else {
         node = expr();
         expect(";");
