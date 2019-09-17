@@ -50,9 +50,18 @@ void gen(Node *node) {
             printf("  cmp rax, 0\n");
             int c = label_count;
             label_count++;
-            printf("  je  .Lend%d\n", c);
-            gen(node->con);
-            printf(".Lend%d:\n", c);
+            if (node->alt) {
+                printf("  je  .Lelse%d\n", c);
+                gen(node->con);
+                printf("  jmp .Lend%d\n", c);
+                printf(".Lelse%d:\n", c);
+                gen(node->alt);
+                printf(".Lend%d:\n", c);
+            } else {
+                printf("  je  .Lend%d\n", c);
+                gen(node->con);
+                printf(".Lend%d:\n", c);
+            }
             return;
     }
 

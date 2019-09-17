@@ -52,5 +52,7 @@ try 1 'return 1;'
 try 3 'return 3; 5 + 9;'
 try 10 'if (4 == 5) 3; 10;'
 try 5 'a=3; if (1) if (1) a=5; a;'
+try 1 'a=0; if (1) a=a+1; else a=a+2; a;'
+try 2 'a=0; if (0) a=a+1; else a=a+2; a;'
 
 echo OK

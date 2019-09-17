@@ -17,11 +17,12 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
-Node *new_if(Node *pred, Node *con) {
+Node *new_if(Node *pred, Node *con, Node *alt) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_IF;
     node->pred = pred;
     node->con = con;
+    node->alt = alt;
     return node;
 }
 
@@ -75,7 +76,12 @@ Node *stmt() {
         Node *predicate = expr();
         expect(")");
         Node *consequent = stmt();
-        node = new_if(predicate, consequent);
+        if (consume("else")) {
+            Node *alternative = stmt();
+            node = new_if(predicate, consequent, alternative);
+        } else {
+            node = new_if(predicate, consequent, NULL);
+        }
     } else {
         node = expr();
         expect(";");

@@ -52,6 +52,7 @@ struct Node {
     // if
     Node *pred;
     Node *con;
+    Node *alt;
 
     int val; // for ND_NUM
     int offset; // for ND_LVAR
