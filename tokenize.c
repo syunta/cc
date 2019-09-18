@@ -61,8 +61,7 @@ int expect_number() {
 
 bool peek(int n, char *p) {
     Token *t = token;
-    int i;
-    for (; i < n; i++) {
+    for (int i = 0; i < n - 1; i++) {
         t = t->next;
     }
     return strncmp(t->str, p, t->len) == 0;

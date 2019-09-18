@@ -100,16 +100,16 @@ Node *stmt() {
     } else if (consume("for")) {
         expect("(");
         Node *init = NULL;
-        if (!peek(0, ";")) {
+        if (!peek(1, ";")) {
             init = expr();
         }
         expect(";");
         Node *predicate = expr();
         expect(";");
         Node *end = NULL;
-        if (!peek(0, ")")) {
+        if (!peek(1, ")")) {
             end = expr();
-        }99
+        }
         expect(")");
         Node *body = stmt();
         node = new_loop(init, predicate, end, body);
