@@ -26,10 +26,12 @@ Node *new_if(Node *pred, Node *con, Node *alt) {
     return node;
 }
 
-Node *new_loop(Node *pred, Node *body) {
+Node *new_loop(Node *init, Node *pred, Node *end, Node *body) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LOOP;
+    node->init = init;
     node->pred = pred;
+    node->end = end;
     node->body = body;
     return node;
 }
@@ -84,18 +86,33 @@ Node *stmt() {
         Node *predicate = expr();
         expect(")");
         Node *consequent = stmt();
+        Node *alternative = NULL;
         if (consume("else")) {
-            Node *alternative = stmt();
-            node = new_if(predicate, consequent, alternative);
-        } else {
-            node = new_if(predicate, consequent, NULL);
+            alternative = stmt();
         }
+        node = new_if(predicate, consequent, alternative);
     } else if (consume("while")) {
         expect("(");
         Node *predicate = expr();
         expect(")");
         Node *body = stmt();
-        node = new_loop(predicate, body);
+        node = new_loop(NULL, predicate, NULL, body);
+    } else if (consume("for")) {
+        expect("(");
+        Node *init = NULL;
+        if (!peek(0, ";")) {
+            init = expr();
+        }
+        expect(";");
+        Node *predicate = expr();
+        expect(";");
+        Node *end = NULL;
+        if (!peek(0, ")")) {
+            end = expr();
+        }99
+        expect(")");
+        Node *body = stmt();
+        node = new_loop(init, predicate, end, body);
     } else {
         node = expr();
         expect(";");

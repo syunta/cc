@@ -84,6 +84,7 @@ bool consume(char *op);
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
+bool peek(int n, char *p);
 
 Token *tokenize();
 bool at_eof();

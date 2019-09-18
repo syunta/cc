@@ -59,6 +59,15 @@ int expect_number() {
     return val;
 }
 
+bool peek(int n, char *p) {
+    Token *t = token;
+    int i;
+    for (; i < n; i++) {
+        t = t->next;
+    }
+    return strncmp(t->str, p, t->len) == 0;
+}
+
 bool at_eof() {
     return token->kind == TK_EOF;
 }
@@ -126,6 +135,12 @@ Token *tokenize() {
         if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
             cur = new_token(TK_RESERVED, cur, p, 5);
             p += 5;
+            continue;
+        }
+
+        if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
+            cur = new_token(TK_RESERVED, cur, p, 3);
+            p += 3;
             continue;
         }
 
