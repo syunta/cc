@@ -57,5 +57,7 @@ try 2 'a=0; if (0) a=a+1; else a=a+2; a;'
 try 10 'a=0; while (a < 10) a=a+1; a;'
 try 20 'a=0; for (i=0; i<10; i=i+1) a=a+2; a;'
 try 3 'a=0; for (;a < 1;) a=a+3; a;'
+try 2 "{ 1; 2; }"
+try 15 "a=0; for(i=0; i<5; i=i+1) {a=a+1; a=a+1; a=a+1;} a;"
 
 echo OK

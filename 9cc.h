@@ -36,6 +36,7 @@ typedef enum {
     ND_LT, // <
     ND_LE, // <=
     ND_ASSIGN, // =
+    ND_BLOCK, // { ... }
     ND_RETURN, // return
     ND_IF, // if
     ND_LOOP, // while
@@ -50,6 +51,8 @@ struct Node {
     Node *lhs;
     Node *rhs;
 
+    Node *next;
+
     // if
     Node *pred;
     Node *con;
@@ -58,6 +61,8 @@ struct Node {
     // while, for
     Node *init;
     Node *end;
+
+    // an expression or block
     Node *body;
 
     int val; // for ND_NUM

@@ -36,6 +36,13 @@ Node *new_loop(Node *init, Node *pred, Node *end, Node *body) {
     return node;
 }
 
+Node *new_block(Node *body) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_BLOCK;
+    node->body = body;
+    return node;
+}
+
 Node *new_node_num(int val) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
@@ -78,7 +85,19 @@ void program() {
 Node *stmt() {
     Node *node;
 
-    if (consume("return")) {
+    if (consume("{")) {
+        Node head;
+        head.next = NULL;
+        Node *cur = &head;
+
+        while (!consume("}")) {
+            Node *s = stmt();
+            cur->next = s;
+            cur = s;
+        }
+
+        node = new_block(head.next);
+    } else if (consume("return")) {
         node = new_node(ND_RETURN, expr(), NULL);
         expect(";");
     } else if (consume("if")) {

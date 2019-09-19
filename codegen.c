@@ -53,6 +53,8 @@ void gen_loop(Node *node) {
     printf(".Lend%d:\n", c);
 }
 
+void g();
+
 void gen(Node *node) {
     if (!node) return;
     switch (node->kind) {
@@ -85,6 +87,9 @@ void gen(Node *node) {
             return;
         case ND_LOOP:
             gen_loop(node);
+            return;
+        case ND_BLOCK:
+            g(node->body);
             return;
     }
 
@@ -131,4 +136,14 @@ void gen(Node *node) {
     }
 
     printf("  push rax\n");
+}
+
+void g(Node *node) {
+    gen(node);
+    if (node->next) {
+        if (node->next->next) {
+            printf("  pop rax\n");
+        }
+        g(node->next);
+    }
 }
