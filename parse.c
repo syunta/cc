@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Node *code[100];
+Node *code;
 LVar *locals;
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
@@ -75,11 +75,15 @@ Node *unary();
 Node *primary();
 
 void program() {
-    int i = 0;
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
     while (!at_eof()) {
-        code[i++] = stmt();
+        Node *s = stmt();
+        cur->next = s;
+        cur = s;
     }
-    code[i] = NULL;
+    code = head.next;
 }
 
 Node *stmt() {

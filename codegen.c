@@ -141,9 +141,7 @@ void gen(Node *node) {
 void g(Node *node) {
     gen(node);
     if (node->next) {
-        if (node->next->next) {
-            printf("  pop rax\n");
-        }
+        printf("  pop rax\n");
         g(node->next);
     }
 }

@@ -96,7 +96,7 @@ bool at_eof();
 
 // Parser
 
-extern Node *code[100];
+extern Node *code;
 extern LVar *locals;
 
 void initialize_locals();
@@ -106,3 +106,4 @@ void program();
 
 extern int label_count;
 void gen(Node *node);
+void g(Node *node);
