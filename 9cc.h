@@ -67,6 +67,9 @@ struct Node {
     // an expression or block
     Node *body;
 
+    // function call
+    Node *args;
+
     int val; // for ND_NUM
     int offset; // for ND_LVAR
     Token *tok; // for ND_CALL

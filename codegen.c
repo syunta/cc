@@ -47,6 +47,23 @@ void gen_loop(Node *node) {
     printf(".Lend%d:\n", c);
 }
 
+void gen_args(Node *node) {
+    Node *cur = node;
+    int count = 0;
+    while (cur) {
+        gen(cur);
+        cur = cur->next;
+        count++;
+    }
+    if (count == 0) {
+        return;
+    }
+    char *rs[] = {"r9", "r8", "rcx", "rdx", "rsi", "rdi"};
+    for (int i = 6 - count; i < 6; i++) {
+        printf("  pop %s\n", rs[i]);
+    }
+}
+
 void g();
 
 void gen(Node *node) {
@@ -86,6 +103,7 @@ void gen(Node *node) {
             g(node->body);
             return;
         case ND_CALL:
+            gen_args(node->args);
             printf("  call %s\n", strndup(node->tok->str, node->tok->len));
             return;
     }

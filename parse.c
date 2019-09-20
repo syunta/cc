@@ -37,10 +37,11 @@ Node *new_block(Node *body) {
     return node;
 }
 
-Node *new_call(Token *tok) {
+Node *new_call(Token *tok, Node *args) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_CALL;
     node->tok = tok;
+    node->args = args;
     return node;
 }
 
@@ -74,6 +75,7 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
+Node *args();
 
 void program() {
     Node head;
@@ -224,8 +226,9 @@ Node *primary() {
     Token *tok = consume_ident();
     if (tok) {
         if (consume("(")) {
+            Node *arguments = args();
             consume(")");
-            Node *node = new_call(tok);
+            Node *node = new_call(tok, arguments);
             return node;
         }
 
@@ -254,4 +257,17 @@ Node *primary() {
     }
 
     return new_node_num(expect_number());
+}
+
+Node *args() {
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+    while (!peek(1, ")")) {
+        Node *s = expr();
+        cur->next = s;
+        cur = s;
+        consume(",");
+    }
+    return head.next;
 }
