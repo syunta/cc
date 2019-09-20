@@ -43,6 +43,13 @@ Node *new_block(Node *body) {
     return node;
 }
 
+Node *new_call(Token *tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_CALL;
+    node->tok = tok;
+    return node;
+}
+
 Node *new_node_num(int val) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
@@ -222,6 +229,12 @@ Node *unary() {
 Node *primary() {
     Token *tok = consume_ident();
     if (tok) {
+        if (consume("(")) {
+            consume(")");
+            Node *node = new_call(tok);
+            return node;
+        }
+
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
 

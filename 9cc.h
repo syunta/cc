@@ -36,6 +36,7 @@ typedef enum {
     ND_LT, // <
     ND_LE, // <=
     ND_ASSIGN, // =
+    ND_CALL, // ident( ... )
     ND_BLOCK, // { ... }
     ND_RETURN, // return
     ND_IF, // if
@@ -67,6 +68,7 @@ struct Node {
 
     int val; // for ND_NUM
     int offset; // for ND_LVAR
+    Token *tok; // for ND_CALL
 };
 
 typedef struct LVar LVar;
