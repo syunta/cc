@@ -1,10 +1,4 @@
 #include "9cc.h"
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 int label_count = 0;
 
