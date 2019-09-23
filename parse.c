@@ -67,6 +67,7 @@ LVar *find_lvar(Token *tok) {
 }
 
 Node *stmt();
+Node *block();
 Node *expr();
 Node *assign();
 Node *equality();
@@ -92,22 +93,19 @@ void program() {
 Node *stmt() {
     Node *node;
 
-    if (consume("{")) {
-        Node head;
-        head.next = NULL;
-        Node *cur = &head;
+    Node *b = block();
+    if (b) {
+        node = b;
+        return node;
+    }
 
-        while (!consume("}")) {
-            Node *s = stmt();
-            cur->next = s;
-            cur = s;
-        }
-
-        node = new_block(head.next);
-    } else if (consume("return")) {
+    if (consume("return")) {
         node = new_node(ND_RETURN, expr(), NULL);
         expect(";");
-    } else if (consume("if")) {
+        return node;
+    }
+
+    if (consume("if")) {
         expect("(");
         Node *predicate = expr();
         expect(")");
@@ -117,13 +115,19 @@ Node *stmt() {
             alternative = stmt();
         }
         node = new_if(predicate, consequent, alternative);
-    } else if (consume("while")) {
+        return node;
+    }
+
+    if (consume("while")) {
         expect("(");
         Node *predicate = expr();
         expect(")");
         Node *body = stmt();
         node = new_loop(NULL, predicate, NULL, body);
-    } else if (consume("for")) {
+        return node;
+    }
+
+    if (consume("for")) {
         expect("(");
         Node *init = NULL;
         if (!peek(1, ";")) {
@@ -139,9 +143,28 @@ Node *stmt() {
         expect(")");
         Node *body = stmt();
         node = new_loop(init, predicate, end, body);
-    } else {
-        node = expr();
-        expect(";");
+        return node;
+    }
+
+    node = expr();
+    expect(";");
+    return node;
+}
+
+Node *block() {
+    Node *node = NULL;
+    if (consume("{")) {
+        Node head;
+        head.next = NULL;
+        Node *cur = &head;
+
+        while (!consume("}")) {
+            Node *s = stmt();
+            cur->next = s;
+            cur = s;
+        }
+
+        node = new_block(head.next);
     }
     return node;
 }
