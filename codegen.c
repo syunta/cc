@@ -2,6 +2,10 @@
 
 int label_count = 0;
 
+void g();
+void gen();
+void ggen();
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
         error("代入の左辺値が変数ではありません");
@@ -63,8 +67,6 @@ void gen_args(Node *node) {
         printf("  pop %s\n", rs[i]);
     }
 }
-
-void g();
 
 void gen(Node *node) {
     if (!node) return;
@@ -153,10 +155,37 @@ void gen(Node *node) {
     printf("  push rax\n");
 }
 
+void ggen(Node *node) {
+    if (!node) return;
+    switch (node->kind) {
+        case ND_DEFINE:
+            printf("%s:\n", strndup(node->tok->str, node->tok->len));
+            printf("  push rbp\n");
+            printf("  mov rbp, rsp\n");
+            printf("  sub rsp, 208\n");
+
+            g(node->body);
+
+            printf("  pop rax\n");
+
+            printf("  mov rsp, rbp\n");
+            printf("  pop rbp\n");
+            printf("  ret\n");
+            return;
+    }
+}
+
 void g(Node *node) {
     gen(node);
     if (node->next) {
         printf("  pop rax\n");
         g(node->next);
+    }
+}
+
+void gen_globals(Node *node) {
+    ggen(node);
+    if (node->next) {
+        ggen(node->next);
     }
 }

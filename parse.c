@@ -37,6 +37,15 @@ Node *new_block(Node *body) {
     return node;
 }
 
+Node *new_definition(Token *tok, Node* params, Node *body) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_DEFINE;
+    node->tok = tok;
+    node->params = params;
+    node->body = body;
+    return node;
+}
+
 Node *new_call(Token *tok, Node *args) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_CALL;
@@ -66,8 +75,10 @@ LVar *find_lvar(Token *tok) {
     return NULL;
 }
 
-Node *stmt();
+Node *define();
+Node *params();
 Node *block();
+Node *stmt();
 Node *expr();
 Node *assign();
 Node *equality();
@@ -83,11 +94,41 @@ void program() {
     head.next = NULL;
     Node *cur = &head;
     while (!at_eof()) {
-        Node *s = stmt();
+        Node *s = define();
         cur->next = s;
         cur = s;
     }
     code = head.next;
+}
+
+Node* define() {
+    Token *name = expect_ident();
+    expect("(");
+    Node* ps = params();
+    expect(")");
+    Node *body = block();
+    return new_definition(name, ps, body);
+}
+
+Node* params() {
+}
+
+Node *block() {
+    Node *node = NULL;
+    if (consume("{")) {
+        Node head;
+        head.next = NULL;
+        Node *cur = &head;
+
+        while (!consume("}")) {
+            Node *s = stmt();
+            cur->next = s;
+            cur = s;
+        }
+
+        node = new_block(head.next);
+    }
+    return node;
 }
 
 Node *stmt() {
@@ -148,24 +189,6 @@ Node *stmt() {
 
     node = expr();
     expect(";");
-    return node;
-}
-
-Node *block() {
-    Node *node = NULL;
-    if (consume("{")) {
-        Node head;
-        head.next = NULL;
-        Node *cur = &head;
-
-        while (!consume("}")) {
-            Node *s = stmt();
-            cur->next = s;
-            cur = s;
-        }
-
-        node = new_block(head.next);
-    }
     return node;
 }
 

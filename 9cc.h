@@ -37,7 +37,8 @@ typedef enum {
     ND_LT, // <
     ND_LE, // <=
     ND_ASSIGN, // =
-    ND_CALL, // ident( ... )
+    ND_DEFINE, // function define
+    ND_CALL, // function call
     ND_BLOCK, // { ... }
     ND_RETURN, // return
     ND_IF, // if
@@ -67,21 +68,30 @@ struct Node {
     // an expression or block
     Node *body;
 
+    // function define
+    Node *params;
+
     // function call
     Node *args;
 
     int val; // for ND_NUM
     int offset; // for ND_LVAR
-    Token *tok; // for ND_CALL
+    Token *tok; // for ND_DEFINE, ND_CALL
 };
 
 typedef struct LVar LVar;
-
 struct LVar {
     LVar *next;
     char *name;
     int len;
     int offset;
+};
+
+typedef struct GEnv GEnv;
+struct GEnv {
+    GEnv *next;
+    char *name;
+    int len;
 };
 
 // Tokenizer
@@ -95,6 +105,7 @@ bool consume(char *op);
 Token *consume_ident();
 void expect(char *op);
 int expect_number();
+Token *expect_ident();
 bool peek(int n, char *p);
 
 Token *tokenize();
@@ -111,5 +122,4 @@ void program();
 // Generator
 
 extern int label_count;
-void gen(Node *node);
-void g(Node *node);
+void gen_globals(Node *node);

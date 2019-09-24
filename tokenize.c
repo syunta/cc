@@ -53,6 +53,14 @@ int expect_number() {
     return val;
 }
 
+Token *expect_ident() {
+    if (token->kind != TK_IDENT)
+        error_at(token->str, "識別子ではありません");
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 bool peek(int n, char *p) {
     Token *t = token;
     for (int i = 0; i < n - 1; i++) {

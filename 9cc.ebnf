@@ -1,7 +1,8 @@
-program    = define
+program    = define*
 
 define     = ident "(" params? ")" block
 params     = ident ("," params)*
+block      = "{" stmt* "}"
 
 stmt       = expr ";"
              | block
@@ -9,7 +10,6 @@ stmt       = expr ";"
              | "if" "(" expr ")" stmt ("else" stmt)?
              | "while" "(" expr ")" stmt
              | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-block      = "{" stmt* "}"
 expr       = assign
 assign     = equality ("=" assign)?
 equality   = relational ("==" relational | "!=" relational)*
