@@ -68,6 +68,24 @@ void gen_args(Node *node) {
     }
 }
 
+void gen_params(Node *node) {
+    Node *cur = node;
+    int count = 0;
+    while (cur) {
+        gen_lval(cur);
+        cur = cur->next;
+        count++;
+    }
+    if (count == 0) {
+        return;
+    }
+    char *rs[] = {"r9", "r8", "rcx", "rdx", "rsi", "rdi"};
+    for (int i = 6 - count; i < 6; i++) {
+        printf("  pop rax\n");
+        printf("  mov [rax], %s\n",  rs[i]);
+    }
+}
+
 void gen(Node *node) {
     if (!node) return;
     switch (node->kind) {
@@ -107,6 +125,7 @@ void gen(Node *node) {
         case ND_CALL:
             gen_args(node->args);
             printf("  call %s\n", strndup(node->tok->str, node->tok->len));
+            printf("  push rax\n");
             return;
     }
 
@@ -164,6 +183,7 @@ void ggen(Node *node) {
             printf("  mov rbp, rsp\n");
             printf("  sub rsp, 208\n");
 
+            gen_params(node->params);
             g(node->body);
 
             printf("  pop rax\n");

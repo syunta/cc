@@ -61,9 +61,27 @@ Node *new_node_num(int val) {
     return node;
 }
 
+Node *new_lvar() {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+    return node;
+}
+
 void initialize_locals() {
     locals = calloc(1, sizeof(LVar));
     locals->offset = 0;
+}
+
+LVar *extend_locals(Token *tok) {
+    LVar *lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    lvar->offset = locals->offset + 8;
+
+    locals = lvar;
+
+    return lvar;
 }
 
 LVar *find_lvar(Token *tok) {
@@ -102,15 +120,31 @@ void program() {
 }
 
 Node* define() {
+    initialize_locals();
+
     Token *name = expect_ident();
     expect("(");
     Node* ps = params();
     expect(")");
     Node *body = block();
+
     return new_definition(name, ps, body);
 }
 
 Node* params() {
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+    while (!peek(1, ")")) {
+        Token *tok = consume_ident();
+        LVar *lvar = extend_locals(tok);
+        Node *p = new_lvar();
+        p->offset = lvar->offset;
+        cur->next = p;
+        cur = p;
+        consume(",");
+    }
+    return head.next;
 }
 
 Node *block() {
@@ -278,20 +312,13 @@ Node *primary() {
             return node;
         }
 
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;
-
+        Node *node = new_lvar();
         LVar *lvar = find_lvar(tok);
         if (lvar) {
             node->offset = lvar->offset;
         } else {
-            lvar = calloc(1, sizeof(LVar));
-            lvar->next = locals;
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            lvar->offset = locals->offset + 8;
+            lvar = extend_locals(tok);
             node->offset = lvar->offset;
-            locals = lvar;
         }
         return node;
     }
@@ -310,9 +337,9 @@ Node *args() {
     head.next = NULL;
     Node *cur = &head;
     while (!peek(1, ")")) {
-        Node *s = expr();
-        cur->next = s;
-        cur = s;
+        Node *a = expr();
+        cur->next = a;
+        cur = a;
         consume(",");
     }
     return head.next;

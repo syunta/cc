@@ -9,7 +9,6 @@ int main(int argc, char **argv) {
     user_input = argv[1];
     token = tokenize();
 
-    initialize_locals();
     program();
 
     printf(".intel_syntax noprefix\n");

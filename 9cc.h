@@ -43,7 +43,7 @@ typedef enum {
     ND_RETURN, // return
     ND_IF, // if
     ND_LOOP, // while
-    ND_LVAR, // local variable
+    ND_LVAR, // local variable, function param
     ND_NUM, // Integer
 } NodeKind;
 
@@ -116,7 +116,6 @@ bool at_eof();
 extern Node *code;
 extern LVar *locals;
 
-void initialize_locals();
 void program();
 
 // Generator

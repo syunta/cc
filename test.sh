@@ -59,5 +59,16 @@ try 20 'main () { a=0; for (i=0; i<10; i=i+1) a=a+2; a; }'
 try 3 'main () { a=0; for (;a < 1;) a=a+3; a; }'
 try 2 "main () { { 1; 2; } }"
 try 15 "main () { a=0; for(i=0; i<5; i=i+1) {a=a+1; a=a+1; a=a+1;} a; }"
+try 10 "add () { 10; } main () { add(); }"
+try 6 "sub (x, y) { x - y; } main () { sub(7, 1); }"
+try 0 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(0);}"
+try 1 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(1);}"
+try 1 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(2);}"
+try 2 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(3);}"
+try 3 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(4);}"
+try 5 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(5);}"
+try 8 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(6);}"
+try 13 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(7);}"
+try 21 "fib(n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} main(){fib(8);}"
 
 echo OK
