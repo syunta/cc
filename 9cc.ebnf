@@ -1,7 +1,7 @@
 program    = define*
 
-define     = ident "(" params? ")" block
-params     = ident ("," params)*
+define     = "int" ident "(" params? ")" block
+params     = "int" ident ("," params)*
 block      = "{" stmt* "}"
 
 stmt       = expr ";"

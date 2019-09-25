@@ -130,6 +130,7 @@ void program() {
 Node* define() {
     initialize_locals();
 
+    expect("int");
     Token *name = expect_ident();
     expect("(");
     Node* ps = params();
@@ -143,13 +144,17 @@ Node* params() {
     Node head;
     head.next = NULL;
     Node *cur = &head;
+
     while (!peek(1, ")")) {
-        Token *tok = consume_ident();
+        if (cur != &head) {
+            expect(",");
+        }
+        expect("int");
+        Token *tok = expect_ident();
         LVar *lvar = extend_locals(tok);
         Node *p = new_lvar(lvar->offset);
         cur->next = p;
         cur = p;
-        consume(",");
     }
     return head.next;
 }
@@ -230,8 +235,8 @@ Node *stmt() {
 
     if (consume("int")) {
         Token* tok = expect_ident();
-        extend_locals(tok);
-        node = new_declare(INT);
+        LVar *lvar = extend_locals(tok);
+        node = new_lvar(lvar->offset);
         expect(";");
         return node;
     }
@@ -351,10 +356,12 @@ Node *args() {
     head.next = NULL;
     Node *cur = &head;
     while (!peek(1, ")")) {
+        if (cur != &head) {
+            expect(",");
+        }
         Node *a = expr();
         cur->next = a;
         cur = a;
-        consume(",");
     }
     return head.next;
 }
