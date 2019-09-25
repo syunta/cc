@@ -45,6 +45,8 @@ typedef enum {
     ND_LOOP, // while
     ND_LVAR, // local variable, function param
     ND_NUM, // Integer
+    ND_ADDR, // pointer
+    ND_DEREF, // dereference pointer
 } NodeKind;
 
 typedef struct Node Node;
