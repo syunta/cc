@@ -2,7 +2,7 @@
 
 int label_count = 0;
 
-void g();
+void gen_statements();
 void gen();
 void ggen();
 
@@ -120,7 +120,7 @@ void gen(Node *node) {
             gen_loop(node);
             return;
         case ND_BLOCK:
-            g(node->body);
+            gen_statements(node->body);
             return;
         case ND_CALL:
             gen_args(node->args);
@@ -184,7 +184,7 @@ void ggen(Node *node) {
             printf("  sub rsp, 208\n");
 
             gen_params(node->params);
-            g(node->body);
+            gen(node->body);
 
             printf("  pop rax\n");
 
@@ -195,17 +195,21 @@ void ggen(Node *node) {
     }
 }
 
-void g(Node *node) {
-    gen(node);
-    if (node->next) {
-        printf("  pop rax\n");
-        g(node->next);
+void gen_statements(Node *node) {
+    Node *cur = node;
+    while (cur) {
+        gen(cur);
+        if (cur->next) {
+            printf("  pop rax\n");
+        }
+        cur = cur->next;
     }
 }
 
 void gen_globals(Node *node) {
-    ggen(node);
-    if (node->next) {
-        ggen(node->next);
+    Node *cur = node;
+    while (cur) {
+        ggen(cur);
+        cur = cur->next;
     }
 }
