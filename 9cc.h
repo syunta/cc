@@ -47,12 +47,18 @@ typedef enum {
     ND_NUM, // Integer
     ND_ADDR, // pointer
     ND_DEREF, // dereference pointer
+    ND_DECLARE, // declaration
 } NodeKind;
+
+typedef enum {
+    INT,
+} TypeKind;
 
 typedef struct Node Node;
 
 struct Node {
     NodeKind kind;
+    TypeKind type;
     Node *lhs;
     Node *rhs;
 
@@ -101,6 +107,7 @@ struct GEnv {
 extern Token *token;
 extern char *user_input;
 
+void error_at(char *loc, char *fmt, ...);
 void error(char *fmt, ...);
 
 bool consume(char *op);

@@ -61,9 +61,17 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_lvar() {
+Node *new_lvar(int offset) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
+    node->offset = offset;
+    return node;
+}
+
+Node *new_declare(TypeKind type) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_DECLARE;
+    node->type = type;
     return node;
 }
 
@@ -90,7 +98,7 @@ LVar *find_lvar(Token *tok) {
             return var;
         }
     }
-    return NULL;
+    error_at(token->str, "変数が未定義です: %s", strndup(tok->str, tok->len));
 }
 
 Node *define();
@@ -138,8 +146,7 @@ Node* params() {
     while (!peek(1, ")")) {
         Token *tok = consume_ident();
         LVar *lvar = extend_locals(tok);
-        Node *p = new_lvar();
-        p->offset = lvar->offset;
+        Node *p = new_lvar(lvar->offset);
         cur->next = p;
         cur = p;
         consume(",");
@@ -218,6 +225,14 @@ Node *stmt() {
         expect(")");
         Node *body = stmt();
         node = new_loop(init, predicate, end, body);
+        return node;
+    }
+
+    if (consume("int")) {
+        Token* tok = expect_ident();
+        extend_locals(tok);
+        node = new_declare(INT);
+        expect(";");
         return node;
     }
 
@@ -316,14 +331,9 @@ Node *primary() {
             return node;
         }
 
-        Node *node = new_lvar();
+        Node *node;
         LVar *lvar = find_lvar(tok);
-        if (lvar) {
-            node->offset = lvar->offset;
-        } else {
-            lvar = extend_locals(tok);
-            node->offset = lvar->offset;
-        }
+        node = new_lvar(lvar->offset);
         return node;
     }
 
