@@ -91,7 +91,7 @@ struct Node {
     Node *args;
 
     int val; // for ND_NUM
-    int offset; // for ND_LVAR
+    int offset; // for ND_LVAR, ND_DEFINE
     Token *tok; // for ND_DEFINE, ND_CALL
 };
 

@@ -44,6 +44,7 @@ try 0 'int main () { 1>=2; }'
 try 1 'int main () { int a; a=1; }'
 try 3 'int main () { int z; z=3; }'
 try 5 'int main () { int a; int b; a=2;b=3;a+b; }'
+try 5 "int main () { int a; int b; int c; int d; int e; a=1; b=1; c=1; d=1; e=1; return a+b+c+d+e; }"
 try 10 'int main () { int a; int b;int c; a=12;b=8;c=2;(a+b)/c; }'
 try 4 'int main () { int a; int b; a = 1; b = a + 3; b; }'
 try 9 'int main () { int a; int b; int c; a=b=c=3 ;a + b + c; }'

@@ -97,6 +97,18 @@ bool is_alnum(char p) {
         p == '_';
 }
 
+char *is_keyword(char *p) {
+    char *keywords[] = { "return", "if", "else", "while", "for", "int" };
+
+    for (int i = 0; i < sizeof(keywords) / sizeof(*keywords); i++) {
+        int len = strlen(keywords[i]);
+        if (strncmp(p, keywords[i], len) == 0 && !is_alnum(p[len])) {
+            return keywords[i];
+        }
+    }
+    return NULL;
+}
+
 Token *tokenize() {
     char *p = user_input;
     Token head;
@@ -115,39 +127,11 @@ Token *tokenize() {
             continue;
         }
 
-        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
-            cur = new_token(TK_RESERVED, cur, p, 6);
-            p += 6;
-            continue;
-        }
-
-        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
-            continue;
-        }
-
-        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
-            cur = new_token(TK_RESERVED, cur, p, 4);
-            p += 4;
-            continue;
-        }
-
-        if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
-            cur = new_token(TK_RESERVED, cur, p, 5);
-            p += 5;
-            continue;
-        }
-
-        if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
-            cur = new_token(TK_RESERVED, cur, p, 3);
-            p += 3;
-            continue;
-        }
-
-        if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
-            cur = new_token(TK_RESERVED, cur, p, 3);
-            p += 3;
+        char *kw = is_keyword(p);
+        if (kw) {
+            int len = strlen(kw);
+            cur = new_token(TK_RESERVED, cur, kw, len);
+            p += len;
             continue;
         }
 

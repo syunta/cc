@@ -37,12 +37,13 @@ Node *new_block(Node *body) {
     return node;
 }
 
-Node *new_definition(Token *tok, Node* params, Node *body) {
+Node *new_definition(Token *tok, Node* params, Node *body, int offset) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_DEFINE;
     node->tok = tok;
     node->params = params;
     node->body = body;
+    node->offset = offset;
     return node;
 }
 
@@ -138,7 +139,9 @@ Node* define() {
     expect(")");
     Node *body = block();
 
-    return new_definition(name, ps, body);
+    int max_offset = locals->offset;
+
+    return new_definition(name, ps, body, max_offset);
 }
 
 Node* params() {
