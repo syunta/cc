@@ -7,4 +7,5 @@ add_executable(9cc
         main.c
         tokenize.c
         parse.c
+        types.c
         codegen.c)

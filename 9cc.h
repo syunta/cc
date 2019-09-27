@@ -25,6 +25,19 @@ struct Token {
     int len;
 };
 
+// Types
+
+typedef enum {
+    INT,
+    PTR
+} TypeKind;
+
+typedef struct Type Type;
+struct Type {
+    TypeKind ty;
+    Type *ptr_to;
+};
+
 // Parser
 
 typedef enum {
@@ -47,18 +60,13 @@ typedef enum {
     ND_NUM, // Integer
     ND_ADDR, // pointer
     ND_DEREF, // dereference pointer
-    ND_DECLARE, // declaration
+    ND_LDECLARE, // local variable declaration
 } NodeKind;
 
-typedef enum {
-    INT,
-} TypeKind;
-
 typedef struct Node Node;
-
 struct Node {
     NodeKind kind;
-    TypeKind type;
+    Type *type;
     Node *lhs;
     Node *rhs;
 
@@ -90,16 +98,10 @@ struct Node {
 typedef struct LVar LVar;
 struct LVar {
     LVar *next;
+    Type *type;
     char *name;
     int len;
     int offset;
-};
-
-typedef struct GEnv GEnv;
-struct GEnv {
-    GEnv *next;
-    char *name;
-    int len;
 };
 
 // Tokenizer
@@ -131,3 +133,8 @@ void program();
 
 extern int label_count;
 void gen_globals(Node *node);
+
+// Types
+
+Type *new_type(TypeKind type);
+Type *new_pointer_to(Type *type);

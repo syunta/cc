@@ -61,17 +61,17 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_lvar(int offset) {
+Node *new_lvar(LVar *lvar) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
-    node->offset = offset;
+    node->type = lvar->type;
+    node->offset = lvar->offset;
     return node;
 }
 
-Node *new_declare(TypeKind type) {
+Node *new_ldeclare() {
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_DECLARE;
-    node->type = type;
+    node->kind = ND_LDECLARE;
     return node;
 }
 
@@ -80,9 +80,10 @@ void initialize_locals() {
     locals->offset = 0;
 }
 
-LVar *extend_locals(Token *tok) {
+LVar *extend_locals(Token *tok, Type *type) {
     LVar *lvar = calloc(1, sizeof(LVar));
     lvar->next = locals;
+    lvar->type = type;
     lvar->name = tok->str;
     lvar->len = tok->len;
     lvar->offset = locals->offset + 8;
@@ -150,9 +151,14 @@ Node* params() {
             expect(",");
         }
         expect("int");
+        Type *t = new_type(INT);
+        while (consume("*")) {
+            t = new_pointer_to(t);
+        }
         Token *tok = expect_ident();
-        LVar *lvar = extend_locals(tok);
-        Node *p = new_lvar(lvar->offset);
+        LVar *lvar = extend_locals(tok, t);
+        // set value as local variable
+        Node *p = new_lvar(lvar);
         cur->next = p;
         cur = p;
     }
@@ -234,9 +240,13 @@ Node *stmt() {
     }
 
     if (consume("int")) {
+        Type *t = new_type(INT);
+        while (consume("*")) {
+            t = new_pointer_to(t);
+        }
         Token* tok = expect_ident();
-        LVar *lvar = extend_locals(tok);
-        node = new_lvar(lvar->offset);
+        extend_locals(tok, t);
+        node = new_ldeclare();
         expect(";");
         return node;
     }
@@ -338,7 +348,7 @@ Node *primary() {
 
         Node *node;
         LVar *lvar = find_lvar(tok);
-        node = new_lvar(lvar->offset);
+        node = new_lvar(lvar);
         return node;
     }
 
