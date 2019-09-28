@@ -2,12 +2,134 @@
 
 Node *code;
 LVar *locals;
+GEnv *globals;
+
+// Environment
+
+void initialize_locals() {
+    locals = calloc(1, sizeof(LVar));
+    locals->offset = 0;
+}
+
+void initialize_globals() {
+    globals = calloc(1, sizeof(GEnv));
+    globals->name = NULL;
+}
+
+LVar *extend_locals(Token *tok, Type *type) {
+    LVar *lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->type = type;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    lvar->offset = locals->offset + 8;
+
+    locals = lvar;
+
+    return lvar;
+}
+
+GEnv *extend_globals(Token *tok, Type *type) {
+    GEnv *genv = calloc(1, sizeof(GEnv));
+    genv->next = globals;
+    genv->type = type;
+    genv->name = tok->str;
+    genv->len = tok->len;
+
+    globals = genv;
+
+    return genv;
+}
+
+LVar *find_lvar(Token *tok) {
+    for (LVar *var = locals; var; var = var->next) {
+        if (var->len == tok->len && !strncmp(tok->str, var->name, var->len)) {
+            return var;
+        }
+    }
+    error_at(token->str, "変数が未定義です: %s", strndup(tok->str, tok->len));
+}
+
+GEnv *find_genv(Token *tok) {
+    for (GEnv *env = globals; env; env = env->next) {
+        if (env->len == tok->len && !strncmp(tok->str, env->name, env->len)) {
+            return env;
+        }
+    }
+    error_at(token->str, "関数が未定義です: %s", strndup(tok->str, tok->len));
+}
+
+// AST Node
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
     node->lhs = lhs;
     node->rhs = rhs;
+    return node;
+}
+
+Node *new_add(Node *lhs, Node *rhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->lhs = lhs;
+    node->rhs = rhs;
+    node->kind = ND_ADD;
+    if (lhs->type->ty == INT && rhs->type->ty == INT) {
+        node->type = new_type(INT);
+    }
+    if ((lhs->type->ty == PTR && rhs->type->ty == INT) || (lhs->type->ty == INT && rhs->type->ty == PTR)) {
+        node->kind = ND_PTR_ADD;
+        node->type = new_type(PTR);
+    }
+    return node;
+}
+
+Node *new_sub(Node *lhs, Node *rhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->lhs = lhs;
+    node->rhs = rhs;
+    node->kind = ND_SUB;
+    if (lhs->type->ty == INT && rhs->type->ty == INT) {
+        node->type = new_type(INT);
+    }
+    if ((lhs->type->ty == PTR && rhs->type->ty == INT) || (lhs->type->ty == INT && rhs->type->ty == PTR)) {
+        node->kind = ND_PTR_SUB;
+        node->type = new_type(PTR);
+    }
+    return node;
+}
+
+Node *new_mul(Node *lhs, Node *rhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_MUL;
+    node->type = new_type(INT);
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+Node *new_div(Node *lhs, Node *rhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_DIV;
+    node->type = new_type(INT);
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+Node *new_addr(Node *lhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_ADDR;
+    node->type = new_type(PTR);
+    node->lhs = lhs;
+    return node;
+}
+
+Node *new_deref(Node *lhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_DEREF;
+    node->type = deref_type(lhs);
+    node->lhs = lhs;
     return node;
 }
 
@@ -50,14 +172,17 @@ Node *new_definition(Token *tok, Node* params, Node *body, int offset) {
 Node *new_call(Token *tok, Node *args) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_CALL;
+    GEnv *func = find_genv(tok);
+    node->type = func->type;
     node->tok = tok;
     node->args = args;
     return node;
 }
 
-Node *new_node_num(int val) {
+Node *new_num(int val) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
+    node->type = new_type(INT);
     node->val = val;
     return node;
 }
@@ -76,32 +201,7 @@ Node *new_ldeclare() {
     return node;
 }
 
-void initialize_locals() {
-    locals = calloc(1, sizeof(LVar));
-    locals->offset = 0;
-}
-
-LVar *extend_locals(Token *tok, Type *type) {
-    LVar *lvar = calloc(1, sizeof(LVar));
-    lvar->next = locals;
-    lvar->type = type;
-    lvar->name = tok->str;
-    lvar->len = tok->len;
-    lvar->offset = locals->offset + 8;
-
-    locals = lvar;
-
-    return lvar;
-}
-
-LVar *find_lvar(Token *tok) {
-    for (LVar *var = locals; var; var = var->next) {
-        if (var->len == tok->len && !strncmp(tok->str, var->name, var->len)) {
-            return var;
-        }
-    }
-    error_at(token->str, "変数が未定義です: %s", strndup(tok->str, tok->len));
-}
+// Parser
 
 Node *define();
 Node *params();
@@ -118,6 +218,8 @@ Node *primary();
 Node *args();
 
 void program() {
+    initialize_globals();
+
     Node head;
     head.next = NULL;
     Node *cur = &head;
@@ -133,14 +235,15 @@ Node* define() {
     initialize_locals();
 
     expect("int");
+    Type *return_type = new_type(INT);
     Token *name = expect_ident();
     expect("(");
     Node* ps = params();
     expect(")");
+    extend_globals(name, return_type);
     Node *body = block();
 
     int max_offset = locals->offset;
-
     return new_definition(name, ps, body, max_offset);
 }
 
@@ -306,9 +409,9 @@ Node *add() {
 
     for (;;) {
         if (consume("+"))
-            node = new_node(ND_ADD, node, mul());
+            node = new_add(node, mul());
         else if (consume("-"))
-            node = new_node(ND_SUB, node, mul());
+            node = new_sub(node, mul());
         else
             return node;
     }
@@ -319,9 +422,9 @@ Node *mul() {
 
     for (;;) {
         if (consume("*"))
-            node = new_node(ND_MUL, node, unary());
+            node = new_mul(node, unary());
         else if (consume("/"))
-            node = new_node(ND_DIV, node, unary());
+            node = new_div(node, unary());
         else
             return node;
     }
@@ -331,11 +434,11 @@ Node *unary() {
     if (consume("+"))
         return primary();
     if (consume("-"))
-        return new_node(ND_SUB, new_node_num(0), primary());
+        return new_sub(new_num(0), primary());
     if (consume("*"))
-        return new_node(ND_DEREF, unary(), NULL);
+        return new_deref(unary());
     if (consume("&"))
-        return new_node(ND_ADDR, unary(), NULL);
+        return new_addr(unary());
     return primary();
 }
 
@@ -361,7 +464,7 @@ Node *primary() {
         return node;
     }
 
-    return new_node_num(expect_number());
+    return new_num(expect_number());
 }
 
 Node *args() {

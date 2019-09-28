@@ -12,3 +12,10 @@ Type *new_pointer_to(Type *type) {
     ptr->ptr_to = type;
     return ptr;
 }
+
+Type *deref_type(Node *node) {
+    if (node->kind == ND_DEREF) {
+        return deref_type(node->lhs);
+    }
+    return node->type;
+}

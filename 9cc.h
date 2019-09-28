@@ -41,10 +41,12 @@ struct Type {
 // Parser
 
 typedef enum {
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
+    ND_ADD, // int + int -> int
+    ND_SUB, // int - int -> int
+    ND_MUL, // int * int -> int
+    ND_DIV, // int / int -> int
+    ND_PTR_ADD, // pointer + num -> pointer, num + pointer -> pointer
+    ND_PTR_SUB, // pointer - num -> pointer, num - pointer -> pointer
     ND_EQ, // ==
     ND_NE, // !=
     ND_LT, // <
@@ -66,7 +68,7 @@ typedef enum {
 typedef struct Node Node;
 struct Node {
     NodeKind kind;
-    Type *type;
+    Type *type; // return value type
     Node *lhs;
     Node *rhs;
 
@@ -104,6 +106,14 @@ struct LVar {
     int offset;
 };
 
+typedef struct GEnv GEnv;
+struct GEnv {
+    GEnv *next;
+    Type *type; // return value type
+    char *name;
+    int len;
+};
+
 // Tokenizer
 
 extern Token *token;
@@ -126,6 +136,7 @@ bool at_eof();
 
 extern Node *code;
 extern LVar *locals;
+extern GEnv *globals;
 
 void program();
 
@@ -138,3 +149,4 @@ void gen_globals(Node *node);
 
 Type *new_type(TypeKind type);
 Type *new_pointer_to(Type *type);
+Type *deref_type(Node *node);

@@ -74,5 +74,9 @@ try 21 "int fib(int n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} i
 try 3 "int main () { int x; int y; x=3; y=&x; *y; }"
 try 3 "int main () { int x; int *y; y = &x; *y = 3; return x; }"
 try 7 "int main () { int x; int *y; int **z; y = &x; z = &y; **z = 7; return x; }"
+try 5 'int main() { int x; int y; x=3; y=5; return *(&x+1); }'
+try 3 'int main() { int x; int y; x=3; y=5; return *(&y-1); }'
+try 3 'int main() { int x; int y; x=3; y=5; return *(&y-(3-2)); }'
+try 7 'int main() { int x; int y; x=3; y=5; *(&x+1)=7; return y; }'
 
 echo OK
