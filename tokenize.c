@@ -98,7 +98,7 @@ bool is_alnum(char p) {
 }
 
 char *is_keyword(char *p) {
-    char *keywords[] = { "return", "if", "else", "while", "for", "int" };
+    char *keywords[] = { "return", "if", "else", "while", "for", "int", "sizeof" };
 
     for (int i = 0; i < sizeof(keywords) / sizeof(*keywords); i++) {
         int len = strlen(keywords[i]);

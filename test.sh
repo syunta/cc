@@ -78,5 +78,9 @@ try 5 'int main() { int x; int y; x=3; y=5; return *(&x+1); }'
 try 3 'int main() { int x; int y; x=3; y=5; return *(&y-1); }'
 try 3 'int main() { int x; int y; x=3; y=5; return *(&y-(3-2)); }'
 try 7 'int main() { int x; int y; x=3; y=5; *(&x+1)=7; return y; }'
+try 8 'int main() { return sizeof(100); }'
+try 8 'int main() { return sizeof(4+9); }'
+try 8 'int main() { int *x; return sizeof(x); }'
+try 8 'int main() { return sizeof(sizeof(12)); }'
 
 echo OK

@@ -35,6 +35,7 @@ typedef enum {
 typedef struct Type Type;
 struct Type {
     TypeKind ty;
+    int size;
     Type *ptr_to;
 };
 

@@ -22,7 +22,7 @@ LVar *extend_locals(Token *tok, Type *type) {
     lvar->type = type;
     lvar->name = tok->str;
     lvar->len = tok->len;
-    lvar->offset = locals->offset + 8;
+    lvar->offset = locals->offset + type->size;
 
     locals = lvar;
 
@@ -198,6 +198,11 @@ Node *new_lvar(LVar *lvar) {
 Node *new_ldeclare() {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LDECLARE;
+    return node;
+}
+
+Node *new_sizeof(Node *n) {
+    Node *node = new_num(n->type->size);
     return node;
 }
 
@@ -431,6 +436,8 @@ Node *mul() {
 }
 
 Node *unary() {
+    if (consume("sizeof"))
+        return new_sizeof(unary());
     if (consume("+"))
         return primary();
     if (consume("-"))
