@@ -5,7 +5,7 @@ Type *new_type(TypeKind ty) {
     type->ty = ty;
     switch (ty) {
         case INT:
-            type->size = 8;
+            type->size = 4;
             break;
         case PTR:
             type->size = 8;
@@ -18,11 +18,4 @@ Type *new_pointer_to(Type *type) {
     Type *ptr = new_type(PTR);
     ptr->ptr_to = type;
     return ptr;
-}
-
-Type *deref_type(Node *node) {
-    if (node->kind == ND_DEREF) {
-        return deref_type(node->lhs);
-    }
-    return node->type;
 }

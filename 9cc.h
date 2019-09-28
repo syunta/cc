@@ -150,4 +150,3 @@ void gen_globals(Node *node);
 
 Type *new_type(TypeKind type);
 Type *new_pointer_to(Type *type);
-Type *deref_type(Node *node);

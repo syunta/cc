@@ -2,9 +2,30 @@
 
 int label_count = 0;
 
+char *reg64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *reg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+
+char *reg_of(int size, int idx) {
+    if (size == 4)
+        return reg32[idx];
+    if (size == 8)
+        return reg64[idx];
+}
+
 void gen_statements();
 void gen();
 void ggen();
+
+void gen_save_from(char* reg) {
+    printf("  mov [rax], %s\n", reg);
+}
+
+void gen_load(Node *node) {
+    if (node->type->size == 4)
+        printf("  movsxd rax, dword ptr [rax]\n");
+    if (node->type->size == 8)
+        printf("  mov rax, [rax]\n");
+}
 
 void gen_lval(Node *node) {
     switch (node->kind) {
@@ -54,38 +75,19 @@ void gen_loop(Node *node) {
 
 void gen_args(Node *node) {
     Node *cur = node;
-    int count = 0;
-    while (cur) {
+    for (int i = 0; cur; i++) {
         gen(cur);
-        printf("  push rax\n");
+        printf("  mov %s, rax\n", reg64[i]);
         cur = cur->next;
-        count++;
-    }
-    if (count == 0) {
-        return;
-    }
-    char *rs[] = {"r9", "r8", "rcx", "rdx", "rsi", "rdi"};
-    for (int i = 6 - count; i < 6; i++) {
-        printf("  pop %s\n", rs[i]);
     }
 }
 
 void gen_params(Node *node) {
     Node *cur = node;
-    int count = 0;
-    while (cur) {
+    for (int i = 0; cur; i++) {
         gen_lval(cur);
-        printf("  push rax\n");
+        gen_save_from(reg_of(cur->type->size, i));
         cur = cur->next;
-        count++;
-    }
-    if (count == 0) {
-        return;
-    }
-    char *rs[] = {"r9", "r8", "rcx", "rdx", "rsi", "rdi"};
-    for (int i = 6 - count; i < 6; i++) {
-        printf("  pop rax\n");
-        printf("  mov [rax], %s\n",  rs[i]);
     }
 }
 
@@ -97,7 +99,7 @@ void gen(Node *node) {
             return;
         case ND_LVAR:
             gen_lval(node);
-            printf("  mov rax, [rax]\n");
+            gen_load(node);
             return;
         case ND_ASSIGN:
             gen_lval(node->lhs);
@@ -105,7 +107,7 @@ void gen(Node *node) {
             gen(node->rhs);
             printf("  mov rdi, rax\n");
             printf("  pop rax\n");
-            printf("  mov [rax], rdi\n");
+            gen_save_from(reg_of(node->lhs->type->size, 0));
             printf("  mov rax, rdi\n");
             return;
         case ND_RETURN:
@@ -132,7 +134,7 @@ void gen(Node *node) {
             return;
         case ND_DEREF:
             gen(node->lhs);
-            printf("  mov rax, [rax]\n");
+            gen_load(node);
             return;
         case ND_LDECLARE:
             return;
@@ -152,11 +154,11 @@ void gen(Node *node) {
             printf("  sub rax, rdi\n");
             break;
         case ND_PTR_ADD:
-            printf("  imul rdi, 8\n");
+            printf("  imul rdi, %d\n", node->lhs->type->ptr_to->size);
             printf("  sub rax, rdi\n");
             break;
         case ND_PTR_SUB:
-            printf("  imul rdi, 8\n");
+            printf("  imul rdi, %d\n", node->lhs->type->ptr_to->size);
             printf("  add rax, rdi\n");
             break;
         case ND_MUL:

@@ -41,8 +41,8 @@ try 0 'int main () { 1>2; }'
 try 1 'int main () { 1>=0; }'
 try 1 'int main () { 1>=1; }'
 try 0 'int main () { 1>=2; }'
-try 1 'int main () { int a; a=1; }'
-try 3 'int main () { int z; z=3; }'
+try 1 'int main () { int a; a=1; return a; }'
+try 3 'int main () { int z; z=3; return z; }'
 try 5 'int main () { int a; int b; a=2;b=3;a+b; }'
 try 5 "int main () { int a; int b; int c; int d; int e; a=1; b=1; c=1; d=1; e=1; return a+b+c+d+e; }"
 try 10 'int main () { int a; int b;int c; a=12;b=8;c=2;(a+b)/c; }'
@@ -71,16 +71,16 @@ try 5 "int fib(int n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} in
 try 8 "int fib(int n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} int main(){fib(6);}"
 try 13 "int fib(int n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} int main(){fib(7);}"
 try 21 "int fib(int n){if(n==0){0;}else{if(n==1){1;}else{fib(n-1)+fib(n-2);}}} int main(){fib(8);}"
-try 3 "int main () { int x; int y; x=3; y=&x; *y; }"
-try 3 "int main () { int x; int *y; y = &x; *y = 3; return x; }"
+try 3 "int main () { int x; int *y; x=3; y=&x; *y; }"
+try 3 "int main () { int x; int *y; y=&x; *y=3; return x; }"
 try 7 "int main () { int x; int *y; int **z; y = &x; z = &y; **z = 7; return x; }"
 try 5 'int main() { int x; int y; x=3; y=5; return *(&x+1); }'
 try 3 'int main() { int x; int y; x=3; y=5; return *(&y-1); }'
 try 3 'int main() { int x; int y; x=3; y=5; return *(&y-(3-2)); }'
 try 7 'int main() { int x; int y; x=3; y=5; *(&x+1)=7; return y; }'
-try 8 'int main() { return sizeof(100); }'
-try 8 'int main() { return sizeof(4+9); }'
+try 4 'int main() { return sizeof(100); }'
+try 4 'int main() { return sizeof(4+9); }'
 try 8 'int main() { int *x; return sizeof(x); }'
-try 8 'int main() { return sizeof(sizeof(12)); }'
+try 4 'int main() { return sizeof(sizeof(12)); }'
 
 echo OK

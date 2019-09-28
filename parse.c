@@ -77,9 +77,16 @@ Node *new_add(Node *lhs, Node *rhs) {
     if (lhs->type->ty == INT && rhs->type->ty == INT) {
         node->type = new_type(INT);
     }
-    if ((lhs->type->ty == PTR && rhs->type->ty == INT) || (lhs->type->ty == INT && rhs->type->ty == PTR)) {
+    if (lhs->type->ty == PTR && rhs->type->ty == INT) {
         node->kind = ND_PTR_ADD;
-        node->type = new_type(PTR);
+        node->type = lhs->type;
+    }
+    if (lhs->type->ty == INT && rhs->type->ty == PTR) {
+        // swap node for codegen easily
+        node->lhs = rhs;
+        node->rhs = lhs;
+        node->kind = ND_PTR_ADD;
+        node->type = rhs->type;
     }
     return node;
 }
@@ -92,9 +99,16 @@ Node *new_sub(Node *lhs, Node *rhs) {
     if (lhs->type->ty == INT && rhs->type->ty == INT) {
         node->type = new_type(INT);
     }
-    if ((lhs->type->ty == PTR && rhs->type->ty == INT) || (lhs->type->ty == INT && rhs->type->ty == PTR)) {
+    if (lhs->type->ty == PTR && rhs->type->ty == INT) {
         node->kind = ND_PTR_SUB;
-        node->type = new_type(PTR);
+        node->type = lhs->type;
+    }
+    if (lhs->type->ty == INT && rhs->type->ty == PTR) {
+        // swap node for codegen easily
+        node->lhs = rhs;
+        node->rhs = lhs;
+        node->kind = ND_PTR_SUB;
+        node->type = rhs->type;
     }
     return node;
 }
@@ -120,7 +134,7 @@ Node *new_div(Node *lhs, Node *rhs) {
 Node *new_addr(Node *lhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_ADDR;
-    node->type = new_type(PTR);
+    node->type = new_pointer_to(lhs->type);
     node->lhs = lhs;
     return node;
 }
@@ -128,7 +142,7 @@ Node *new_addr(Node *lhs) {
 Node *new_deref(Node *lhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_DEREF;
-    node->type = deref_type(lhs);
+    node->type = lhs->type->ptr_to;
     node->lhs = lhs;
     return node;
 }
