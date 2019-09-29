@@ -77,11 +77,11 @@ Node *new_add(Node *lhs, Node *rhs) {
     if (lhs->type->ty == INT && rhs->type->ty == INT) {
         node->type = new_type(INT);
     }
-    if (lhs->type->ty == PTR && rhs->type->ty == INT) {
+    if (is_ref(lhs->type) == PTR && rhs->type->ty == INT) {
         node->kind = ND_PTR_ADD;
         node->type = lhs->type;
     }
-    if (lhs->type->ty == INT && rhs->type->ty == PTR) {
+    if (lhs->type->ty == INT && is_ref(rhs->type)) {
         // swap node for codegen easily
         node->lhs = rhs;
         node->rhs = lhs;
@@ -99,11 +99,11 @@ Node *new_sub(Node *lhs, Node *rhs) {
     if (lhs->type->ty == INT && rhs->type->ty == INT) {
         node->type = new_type(INT);
     }
-    if (lhs->type->ty == PTR && rhs->type->ty == INT) {
+    if (is_ref(lhs->type) == PTR && rhs->type->ty == INT) {
         node->kind = ND_PTR_SUB;
         node->type = lhs->type;
     }
-    if (lhs->type->ty == INT && rhs->type->ty == PTR) {
+    if (lhs->type->ty == INT && is_ref(rhs->type)) {
         // swap node for codegen easily
         node->lhs = rhs;
         node->rhs = lhs;
@@ -173,7 +173,7 @@ Node *new_block(Node *body) {
     return node;
 }
 
-Node *new_definition(Token *tok, Node* params, Node *body, int offset) {
+Node *new_definition(Token *tok, Node* params, Node *body, size_t offset) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_DEFINE;
     node->tok = tok;
@@ -220,6 +220,20 @@ Node *new_sizeof(Node *n) {
     return node;
 }
 
+Node *implicit_conv(Node *node) {
+    if (node->type->ty == ARRAY) {
+        if (node->kind == ND_LVAR) {
+            node->kind = ND_ADDR;
+            Node *n = calloc(1, sizeof(Node));
+            n->kind = ND_LVAR;
+            n->type = node->type->ptr_to;
+            n->offset = node->offset - n->type->size * (node->type->array_len - 1);
+            node->lhs = n;
+        }
+    }
+    return node;
+}
+
 // Parser
 
 Node *define();
@@ -262,7 +276,7 @@ Node* define() {
     extend_globals(name, return_type);
     Node *body = block();
 
-    int max_offset = locals->offset;
+    size_t max_offset = locals->offset;
     return new_definition(name, ps, body, max_offset);
 }
 
@@ -370,6 +384,13 @@ Node *stmt() {
             t = new_pointer_to(t);
         }
         Token* tok = expect_ident();
+
+        if(consume("[")) {
+            int len = expect_number();
+            t = new_array_type(len, t);
+            expect("]");
+        }
+
         extend_locals(tok, t);
         node = new_ldeclare();
         expect(";");
@@ -449,18 +470,19 @@ Node *mul() {
     }
 }
 
+// if primary() returns array, parser converts array to reference of array implicitly.
 Node *unary() {
     if (consume("sizeof"))
         return new_sizeof(unary());
     if (consume("+"))
-        return primary();
+        return implicit_conv(primary());
     if (consume("-"))
-        return new_sub(new_num(0), primary());
+        return new_sub(new_num(0), implicit_conv(primary()));
     if (consume("*"))
         return new_deref(unary());
     if (consume("&"))
         return new_addr(unary());
-    return primary();
+    return implicit_conv(primary());
 }
 
 Node *primary() {

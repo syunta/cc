@@ -5,7 +5,7 @@ int label_count = 0;
 char *reg64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char *reg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 
-char *reg_of(int size, int idx) {
+char *reg_of(size_t size, int idx) {
     if (size == 4)
         return reg32[idx];
     if (size == 8)
@@ -31,7 +31,7 @@ void gen_lval(Node *node) {
     switch (node->kind) {
         case ND_LVAR:
             printf("  mov rax, rbp\n");
-            printf("  sub rax, %d\n", node->offset);
+            printf("  sub rax, %ld\n", node->offset);
             return;
         case ND_DEREF:
             gen(node->lhs);
@@ -154,11 +154,11 @@ void gen(Node *node) {
             printf("  sub rax, rdi\n");
             break;
         case ND_PTR_ADD:
-            printf("  imul rdi, %d\n", node->lhs->type->ptr_to->size);
+            printf("  imul rdi, %ld\n", node->lhs->type->ptr_to->size);
             printf("  sub rax, rdi\n");
             break;
         case ND_PTR_SUB:
-            printf("  imul rdi, %d\n", node->lhs->type->ptr_to->size);
+            printf("  imul rdi, %ld\n", node->lhs->type->ptr_to->size);
             printf("  add rax, rdi\n");
             break;
         case ND_MUL:
@@ -198,7 +198,7 @@ void ggen(Node *node) {
             printf("%s:\n", strndup(node->tok->str, node->tok->len));
             printf("  push rbp\n");
             printf("  mov rbp, rsp\n");
-            printf("  sub rsp, %d\n", node->offset);
+            printf("  sub rsp, %ld\n", node->offset);
 
             gen_params(node->params);
             gen(node->body);

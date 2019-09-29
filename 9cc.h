@@ -29,13 +29,15 @@ struct Token {
 
 typedef enum {
     INT,
-    PTR
+    PTR,
+    ARRAY,
 } TypeKind;
 
 typedef struct Type Type;
 struct Type {
     TypeKind ty;
-    int size;
+    size_t size;
+    size_t array_len;
     Type *ptr_to;
 };
 
@@ -94,7 +96,7 @@ struct Node {
     Node *args;
 
     int val; // for ND_NUM
-    int offset; // for ND_LVAR, ND_DEFINE
+    size_t offset; // for ND_LVAR, ND_DEFINE
     Token *tok; // for ND_DEFINE, ND_CALL
 };
 
@@ -104,7 +106,7 @@ struct LVar {
     Type *type;
     char *name;
     int len;
-    int offset;
+    size_t offset;
 };
 
 typedef struct GEnv GEnv;
@@ -112,7 +114,7 @@ struct GEnv {
     GEnv *next;
     Type *type; // return value type
     char *name;
-    int len;
+    size_t len;
 };
 
 // Tokenizer
@@ -149,4 +151,6 @@ void gen_globals(Node *node);
 // Types
 
 Type *new_type(TypeKind type);
+Type *new_array_type(size_t len, Type *type);
 Type *new_pointer_to(Type *type);
+bool is_ref(Type *type);

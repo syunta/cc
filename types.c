@@ -14,8 +14,24 @@ Type *new_type(TypeKind ty) {
     return type;
 }
 
+Type *new_array_type(size_t len, Type *type) {
+    Type *t = calloc(1, sizeof(Type));
+    t->ty = ARRAY;
+    t->array_len = len;
+    t->size = type->size * len; // int a[10] -> 4 * 10
+    t->ptr_to = type;
+    return t;
+}
+
 Type *new_pointer_to(Type *type) {
     Type *ptr = new_type(PTR);
     ptr->ptr_to = type;
     return ptr;
+}
+
+bool is_ref(Type *type) {
+    if (type->ty == PTR || type->ty == ARRAY) {
+        return true;
+    }
+    return false;
 }
