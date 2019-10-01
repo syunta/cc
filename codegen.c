@@ -14,7 +14,6 @@ char *reg_of(size_t size, int idx) {
 
 void gen_statements();
 void gen();
-void ggen();
 
 void gen_save_from(char* reg) {
     printf("  mov [rax], %s\n", reg);
@@ -32,6 +31,9 @@ void gen_lval(Node *node) {
         case ND_LVAR:
             printf("  mov rax, rbp\n");
             printf("  sub rax, %ld\n", node->offset);
+            return;
+        case ND_GVAR:
+            printf("  mov rax, offset %s\n", strndup(node->tok->str, node->tok->len));
             return;
         case ND_DEREF:
             gen(node->lhs);
@@ -103,6 +105,10 @@ void gen(Node *node) {
             printf("  mov rax, %d\n", node->val);
             return;
         case ND_LVAR:
+            gen_lval(node);
+            gen_load(node);
+            return;
+        case ND_GVAR:
             gen_lval(node);
             gen_load(node);
             return;
@@ -196,23 +202,24 @@ void gen(Node *node) {
     }
 }
 
-void ggen(Node *node) {
-    if (!node) return;
-    switch (node->kind) {
-        case ND_DEFINE:
-            printf("%s:\n", strndup(node->tok->str, node->tok->len));
-            printf("  push rbp\n");
-            printf("  mov rbp, rsp\n");
-            printf("  sub rsp, %ld\n", node->offset);
+void gen_gvar(Node *node) {
+    printf("%s:\n", strndup(node->tok->str, node->tok->len));
+    printf("  .zero %ld\n", node->offset);
+}
 
-            gen_params(node->params);
-            gen(node->body);
+void gen_func(Node *node) {
+    printf(".global %s\n", strndup(node->tok->str, node->tok->len));
+    printf("%s:\n", strndup(node->tok->str, node->tok->len));
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, %ld\n", node->offset);
 
-            printf("  mov rsp, rbp\n");
-            printf("  pop rbp\n");
-            printf("  ret\n");
-            return;
-    }
+    gen_params(node->params);
+    gen(node->body);
+
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
 }
 
 void gen_statements(Node *node) {
@@ -223,10 +230,27 @@ void gen_statements(Node *node) {
     }
 }
 
-void gen_globals(Node *node) {
+void gen_global_variables(Node *node) {
+    printf(".data\n");
     Node *cur = node;
     while (cur) {
-        ggen(cur);
+        if (cur->kind == ND_DECLARE)
+            gen_gvar(cur);
         cur = cur->next;
     }
+}
+
+void gen_functions(Node *node) {
+    printf(".text\n");
+    Node *cur = node;
+    while (cur) {
+        if (cur->kind == ND_DEFINE)
+            gen_func(cur);
+        cur = cur->next;
+    }
+}
+
+void gen_globals(Node *node) {
+    gen_global_variables(node);
+    gen_functions(node);
 }

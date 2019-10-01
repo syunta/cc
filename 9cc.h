@@ -62,10 +62,12 @@ typedef enum {
     ND_IF, // if
     ND_LOOP, // while
     ND_LVAR, // local variable, function param
+    ND_GVAR, // global variable
     ND_NUM, // Integer
     ND_ADDR, // pointer
     ND_DEREF, // dereference pointer
     ND_LDECLARE, // local variable declaration
+    ND_DECLARE, // global variable declaration
 } NodeKind;
 
 typedef struct Node Node;
@@ -96,25 +98,24 @@ struct Node {
     Node *args;
 
     int val; // for ND_NUM
-    size_t offset; // for ND_LVAR, ND_DEFINE
+    size_t offset; // for ND_LVAR, ND_DEFINE, ND_DECLARE
     Token *tok; // for ND_DEFINE, ND_CALL
 };
 
-typedef struct LVar LVar;
-struct LVar {
-    LVar *next;
-    Type *type;
-    char *name;
-    int len;
-    size_t offset;
-};
+typedef enum {
+    None,
+    LVar,
+    GVar,
+    FUNCTION,
+} EnvKind;
 
-typedef struct GEnv GEnv;
-struct GEnv {
-    GEnv *next;
+typedef struct Env Env;
+struct Env {
+    EnvKind kind;
+    Env *next;
     Type *type; // return value type
-    char *name;
-    size_t len;
+    Token *tok;
+    size_t offset; // variable, function doesn't use this
 };
 
 // Tokenizer
@@ -139,8 +140,8 @@ bool at_eof();
 // Parser
 
 extern Node *code;
-extern LVar *locals;
-extern GEnv *globals;
+extern Env *locals;
+extern Env *globals;
 
 void program();
 

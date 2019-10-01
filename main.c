@@ -12,7 +12,6 @@ int main(int argc, char **argv) {
     program();
 
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
 
     gen_globals(code);
 

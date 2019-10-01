@@ -1,27 +1,27 @@
 #include "9cc.h"
 
 Node *code;
-LVar *locals;
-GEnv *globals;
+Env *locals;
+Env *globals;
 
 // Environment
 
 void initialize_locals() {
-    locals = calloc(1, sizeof(LVar));
-    locals->offset = 0;
+    locals = calloc(1, sizeof(Env));
+    locals->kind = None;
 }
 
 void initialize_globals() {
-    globals = calloc(1, sizeof(GEnv));
-    globals->name = NULL;
+    globals = calloc(1, sizeof(Env));
+    globals->kind = None;
 }
 
-LVar *extend_locals(Token *tok, Type *type) {
-    LVar *lvar = calloc(1, sizeof(LVar));
+Env *extend_locals(Token *tok, Type *type) {
+    Env *lvar = calloc(1, sizeof(Env));
     lvar->next = locals;
+    lvar->kind = LVar;
     lvar->type = type;
-    lvar->name = tok->str;
-    lvar->len = tok->len;
+    lvar->tok = tok;
     lvar->offset = locals->offset + type->size;
 
     locals = lvar;
@@ -29,34 +29,44 @@ LVar *extend_locals(Token *tok, Type *type) {
     return lvar;
 }
 
-GEnv *extend_globals(Token *tok, Type *type) {
-    GEnv *genv = calloc(1, sizeof(GEnv));
+Env *extend_globals(EnvKind kind, Token *tok, Type *type) {
+    Env *genv = calloc(1, sizeof(Env));
+    genv->kind = kind;
     genv->next = globals;
     genv->type = type;
-    genv->name = tok->str;
-    genv->len = tok->len;
+    genv->tok = tok;
+
+    if (kind == GVar)
+        genv->offset = globals->offset + type->size;
+    else
+        genv->offset = globals->offset;
 
     globals = genv;
 
     return genv;
 }
 
-LVar *find_lvar(Token *tok) {
-    for (LVar *var = locals; var; var = var->next) {
-        if (var->len == tok->len && !strncmp(tok->str, var->name, var->len)) {
-            return var;
-        }
-    }
-    error_at(token->str, "変数が未定義です: %s", strndup(tok->str, tok->len));
-}
-
-GEnv *find_genv(Token *tok) {
-    for (GEnv *env = globals; env; env = env->next) {
-        if (env->len == tok->len && !strncmp(tok->str, env->name, env->len)) {
+Env *find_func(Token *tok) {
+    for (Env *env = globals; env; env = env->next) {
+        if (env->kind == FUNCTION && env->tok->len == tok->len && !strncmp(tok->str, env->tok->str, env->tok->len)) {
             return env;
         }
     }
     error_at(token->str, "関数が未定義です: %s", strndup(tok->str, tok->len));
+}
+
+Env *find_var(Token *tok) {
+    for (Env *var = locals; var; var = var->next) {
+        if (var->kind == LVar && var->tok->len == tok->len && !strncmp(tok->str, var->tok->str, var->tok->len)) {
+            return var;
+        }
+    }
+    for (Env *var = globals; var; var = var->next) {
+        if (var->kind == GVar && var->tok->len == tok->len && !strncmp(tok->str, var->tok->str, var->tok->len)) {
+            return var;
+        }
+    }
+    error_at(token->str, "変数が未定義です: %s", strndup(tok->str, tok->len));
 }
 
 // AST Node
@@ -186,7 +196,7 @@ Node *new_definition(Token *tok, Node* params, Node *body, size_t offset) {
 Node *new_call(Token *tok, Node *args) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_CALL;
-    GEnv *func = find_genv(tok);
+    Env *func = find_func(tok);
     node->type = func->type;
     node->tok = tok;
     node->args = args;
@@ -201,11 +211,17 @@ Node *new_num(int val) {
     return node;
 }
 
-Node *new_lvar(LVar *lvar) {
+Node *new_var(Env *var) {
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
-    node->type = lvar->type;
-    node->offset = lvar->offset;
+    if (var->kind == GVar) {
+        node->kind = ND_GVAR;
+    }
+    if (var->kind == LVar) {
+        node->kind = ND_LVAR;
+    }
+    node->tok = var->tok;
+    node->offset = var->offset;
+    node->type = var->type;
     return node;
 }
 
@@ -215,16 +231,27 @@ Node *new_ldeclare() {
     return node;
 }
 
+Node *new_declare(Token *tok, Env *gvar) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_DECLARE;
+    node->tok = tok;
+    node->offset = gvar->offset;
+    return node;
+}
+
 Node *new_sizeof(Node *n) {
     Node *node = new_num(n->type->size);
     return node;
 }
 
 Node *implicit_conv(Node *node) {
-    if (node->type->ty == ARRAY && node->kind == ND_LVAR) {
-        node->kind = ND_ADDR;
+    if (node->type->ty == ARRAY && (node->kind == ND_LVAR || node->kind == ND_GVAR)) {
         Node *n = calloc(1, sizeof(Node));
-        n->kind = ND_LVAR;
+        n->kind = node->kind;
+        n->tok = node->tok;
+
+        node->kind = ND_ADDR;
+
         n->type = node->type->ptr_to;
         n->offset = node->offset - n->type->size * (node->type->array_len - 1);
         node->lhs = implicit_conv(n);
@@ -235,6 +262,7 @@ Node *implicit_conv(Node *node) {
 // Parser
 
 Node *define();
+Node *func(Token *tok, Type *return_type);
 Node *params();
 Node *block();
 Node *stmt();
@@ -268,16 +296,25 @@ Node* define() {
     initialize_locals();
 
     expect("int");
-    Type *return_type = new_type(INT);
-    Token *name = expect_ident();
-    expect("(");
+    Type *type = new_type(INT);
+    Token *tok = expect_ident();
+    if (consume("(")) {
+        return func(tok, type);
+    }
+    type = type_suffix(type);
+    Env *gvar = extend_globals(GVar, tok, type);
+    expect(";");
+    return new_declare(tok, gvar);
+}
+
+Node* func(Token *tok, Type* return_type) {
     Node* ps = params();
     expect(")");
-    extend_globals(name, return_type);
+    extend_globals(FUNCTION, tok, return_type);
     Node *body = block();
 
     size_t max_offset = locals->offset;
-    return new_definition(name, ps, body, max_offset);
+    return new_definition(tok, ps, body, max_offset);
 }
 
 Node* params() {
@@ -295,9 +332,9 @@ Node* params() {
             t = new_pointer_to(t);
         }
         Token *tok = expect_ident();
-        LVar *lvar = extend_locals(tok, t);
+        Env *lvar = extend_locals(tok, t);
         // set value as local variable
-        Node *p = new_lvar(lvar);
+        Node *p = new_var(lvar);
         cur->next = p;
         cur = p;
     }
@@ -506,8 +543,8 @@ Node *primary() {
         if (node)
             return node;
 
-        LVar *lvar = find_lvar(tok);
-        return new_lvar(lvar);
+        Env *var = find_var(tok);
+        return new_var(var);
     }
 
     if (consume("(")) {
@@ -540,8 +577,8 @@ Node *idx_access(Token *tok) {
         expect("]");
         Node* n = idx_access(tok);
         if (!n) {
-            LVar *lvar = find_lvar(tok);
-            n = implicit_conv(new_lvar(lvar));
+            Env *var = find_var(tok);
+            n = implicit_conv(new_var(var));
         }
         return new_deref(new_add(n, i)); // a[i] -> *(a+i)
     }

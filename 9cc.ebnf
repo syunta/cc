@@ -1,6 +1,7 @@
 program    = define*
 
-define     = "int" ident "(" params? ")" block
+define     = "int" ident (func | type_suffix ";")
+func       = "(" params? ")" block
 params     = "int" ("*")* ident ("," params)*
 block      = "{" stmt* "}"
 
