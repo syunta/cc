@@ -89,5 +89,6 @@ try 3 "int main() { int a[2]; *a = 1; *(a+1)=2; int *p; p=a; return *p + *(p+1);
 try 100 'int main() { int a[5][5]; return sizeof(a); }'
 try 4 "int main() { int a[5][5]; **a = 4; return **a; }"
 try 3 "int main() { int a[5][5]; *(*(a+1)) = 1; *(*(a+1)+1) = 2; return *(*(a+1)) + *(*(a+1)+1); }"
+try 99 "int main() { int a[5][5]; *(*(a+3)+1)=99; a[1][3]; }"
 
 echo OK

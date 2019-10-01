@@ -22,5 +22,6 @@ mul        = unary ("*" unary | "/" unary)*
 unary      = "sizeof" unary
              | ("+" | "-")? primary
              | ("*" | "&") unary
-primary    = num | ident ("(" args? ")")? | "(" expr ")"
+primary    = ident ("(" args? ")" | idx_access)? | "(" expr ")" | num
 args       = expr ("," args)*
+idx_access = "[" expr "]" idx_access*

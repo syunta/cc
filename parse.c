@@ -248,6 +248,7 @@ Node *mul();
 Node *unary();
 Node *primary();
 Node *args();
+Node *idx_access(Token *tok);
 
 void program() {
     initialize_globals();
@@ -497,15 +498,16 @@ Node *primary() {
     if (tok) {
         if (consume("(")) {
             Node *arguments = args();
-            consume(")");
-            Node *node = new_call(tok, arguments);
-            return node;
+            expect(")");
+            return new_call(tok, arguments);
         }
 
-        Node *node;
+        Node *node = idx_access(tok);
+        if (node)
+            return node;
+
         LVar *lvar = find_lvar(tok);
-        node = new_lvar(lvar);
-        return node;
+        return new_lvar(lvar);
     }
 
     if (consume("(")) {
@@ -530,4 +532,18 @@ Node *args() {
         cur = a;
     }
     return head.next;
+}
+
+Node *idx_access(Token *tok) {
+    if (consume("[")) {
+        Node *i = expr();
+        expect("]");
+        Node* n = idx_access(tok);
+        if (!n) {
+            LVar *lvar = find_lvar(tok);
+            n = implicit_conv(new_lvar(lvar));
+        }
+        return new_deref(new_add(n, i)); // a[i] -> *(a+i)
+    }
+    return NULL;
 }
