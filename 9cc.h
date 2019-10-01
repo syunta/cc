@@ -127,6 +127,7 @@ void error(char *fmt, ...);
 
 bool consume(char *op);
 Token *consume_ident();
+Type *consume_type();
 void expect(char *op);
 int expect_number();
 Token *expect_ident();

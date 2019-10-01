@@ -39,6 +39,14 @@ Token *consume_ident() {
     return t;
 }
 
+Type *consume_type() {
+    Type *type = NULL;
+    if (consume("int")) {
+        type = new_type(INT);
+    }
+    return type;
+}
+
 void expect(char *op) {
     if (token->kind != TK_RESERVED || strlen(op) != token->len || strncmp(token->str, op, token->len))
         error_at(token->str, "'%s'ではありません", op);

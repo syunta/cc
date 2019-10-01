@@ -221,15 +221,13 @@ Node *new_sizeof(Node *n) {
 }
 
 Node *implicit_conv(Node *node) {
-    if (node->type->ty == ARRAY) {
-        if (node->kind == ND_LVAR) {
-            node->kind = ND_ADDR;
-            Node *n = calloc(1, sizeof(Node));
-            n->kind = ND_LVAR;
-            n->type = node->type->ptr_to;
-            n->offset = node->offset - n->type->size * (node->type->array_len - 1);
-            node->lhs = n;
-        }
+    if (node->type->ty == ARRAY && node->kind == ND_LVAR) {
+        node->kind = ND_ADDR;
+        Node *n = calloc(1, sizeof(Node));
+        n->kind = ND_LVAR;
+        n->type = node->type->ptr_to;
+        n->offset = node->offset - n->type->size * (node->type->array_len - 1);
+        node->lhs = implicit_conv(n);
     }
     return node;
 }
@@ -240,6 +238,7 @@ Node *define();
 Node *params();
 Node *block();
 Node *stmt();
+Type *type_suffix(Type *type);
 Node *expr();
 Node *assign();
 Node *equality();
@@ -378,18 +377,16 @@ Node *stmt() {
         return node;
     }
 
-    if (consume("int")) {
-        Type *t = new_type(INT);
+
+    Type *t = consume_type();
+    if (t) {
         while (consume("*")) {
             t = new_pointer_to(t);
         }
+
         Token* tok = expect_ident();
 
-        if(consume("[")) {
-            int len = expect_number();
-            t = new_array_type(len, t);
-            expect("]");
-        }
+        t = type_suffix(t);
 
         extend_locals(tok, t);
         node = new_ldeclare();
@@ -400,6 +397,16 @@ Node *stmt() {
     node = expr();
     expect(";");
     return node;
+}
+
+Type *type_suffix(Type *type) {
+    if(consume("[")) {
+        int len = expect_number();
+        type = new_array_type(len, type);
+        expect("]");
+        type = type_suffix(type);
+    }
+    return type;
 }
 
 Node *expr() {

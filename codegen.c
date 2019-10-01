@@ -36,6 +36,11 @@ void gen_lval(Node *node) {
         case ND_DEREF:
             gen(node->lhs);
             return;
+        // case of implicit conversion array
+        // ex) int a[5]; *a = 1;
+        case ND_ADDR:
+            gen_lval(node->lhs);
+            return;
     }
     error("代入の左辺値が変数ではありません");
 }
