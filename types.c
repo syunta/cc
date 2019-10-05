@@ -10,6 +10,9 @@ Type *new_type(TypeKind ty) {
         case PTR:
             type->size = 8;
             break;
+        case CHAR:
+            type->size = 1;
+            break;
     }
     return type;
 }
@@ -31,6 +34,13 @@ Type *new_pointer_to(Type *type) {
 
 bool is_ref(Type *type) {
     if (type->ty == PTR || type->ty == ARRAY) {
+        return true;
+    }
+    return false;
+}
+
+bool is_int(Type *type) {
+    if (type->ty == INT || type->ty == CHAR) {
         return true;
     }
     return false;

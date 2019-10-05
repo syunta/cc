@@ -84,14 +84,14 @@ Node *new_add(Node *lhs, Node *rhs) {
     node->lhs = lhs;
     node->rhs = rhs;
     node->kind = ND_ADD;
-    if (lhs->type->ty == INT && rhs->type->ty == INT) {
+    if (is_int(lhs->type) && is_int(rhs->type)) {
         node->type = new_type(INT);
     }
-    if (is_ref(lhs->type) == PTR && rhs->type->ty == INT) {
+    if (is_ref(lhs->type) && is_int(rhs->type)) {
         node->kind = ND_PTR_ADD;
         node->type = lhs->type;
     }
-    if (lhs->type->ty == INT && is_ref(rhs->type)) {
+    if (is_int(lhs->type) && is_ref(rhs->type)) {
         // swap node for codegen easily
         node->lhs = rhs;
         node->rhs = lhs;
@@ -106,14 +106,14 @@ Node *new_sub(Node *lhs, Node *rhs) {
     node->lhs = lhs;
     node->rhs = rhs;
     node->kind = ND_SUB;
-    if (lhs->type->ty == INT && rhs->type->ty == INT) {
+    if (is_int(lhs->type) && is_int(rhs->type)) {
         node->type = new_type(INT);
     }
-    if (is_ref(lhs->type) == PTR && rhs->type->ty == INT) {
+    if (is_ref(lhs->type) && is_int(rhs->type)) {
         node->kind = ND_PTR_SUB;
         node->type = lhs->type;
     }
-    if (lhs->type->ty == INT && is_ref(rhs->type)) {
+    if (is_int(lhs->type) && is_ref(rhs->type)) {
         // swap node for codegen easily
         node->lhs = rhs;
         node->rhs = lhs;
@@ -262,11 +262,12 @@ Node *implicit_conv(Node *node) {
 // Parser
 
 Node *define();
+Type *base_type();
+Type *type_suffix(Type *type);
 Node *func(Token *tok, Type *return_type);
 Node *params();
 Node *block();
 Node *stmt();
-Type *type_suffix(Type *type);
 Node *expr();
 Node *assign();
 Node *equality();
@@ -295,9 +296,9 @@ void program() {
 Node* define() {
     initialize_locals();
 
-    expect("int");
-    Type *type = new_type(INT);
+    Type *type = base_type();
     Token *tok = expect_ident();
+
     if (consume("(")) {
         return func(tok, type);
     }
@@ -305,6 +306,26 @@ Node* define() {
     Env *gvar = extend_globals(GVar, tok, type);
     expect(";");
     return new_declare(tok, gvar);
+}
+
+Type *base_type() {
+    Type *t = consume_type();
+    if (!t) return NULL;
+
+    while (consume("*")) {
+        t = new_pointer_to(t);
+    }
+    return t;
+}
+
+Type *type_suffix(Type *type) {
+    if(consume("[")) {
+        int len = expect_number();
+        type = new_array_type(len, type);
+        expect("]");
+        type = type_suffix(type);
+    }
+    return type;
 }
 
 Node* func(Token *tok, Type* return_type) {
@@ -326,12 +347,10 @@ Node* params() {
         if (cur != &head) {
             expect(",");
         }
-        expect("int");
-        Type *t = new_type(INT);
-        while (consume("*")) {
-            t = new_pointer_to(t);
-        }
+
+        Type *t = base_type();
         Token *tok = expect_ident();
+
         Env *lvar = extend_locals(tok, t);
         // set value as local variable
         Node *p = new_var(lvar);
@@ -416,12 +435,8 @@ Node *stmt() {
     }
 
 
-    Type *t = consume_type();
+    Type *t = base_type();
     if (t) {
-        while (consume("*")) {
-            t = new_pointer_to(t);
-        }
-
         Token* tok = expect_ident();
 
         t = type_suffix(t);
@@ -435,16 +450,6 @@ Node *stmt() {
     node = expr();
     expect(";");
     return node;
-}
-
-Type *type_suffix(Type *type) {
-    if(consume("[")) {
-        int len = expect_number();
-        type = new_array_type(len, type);
-        expect("]");
-        type = type_suffix(type);
-    }
-    return type;
 }
 
 Node *expr() {

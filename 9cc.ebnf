@@ -1,8 +1,10 @@
 program    = define*
 
-define     = "int" ident (func | type_suffix ";")
+define     = base_type ident (func | type_suffix ";")
+base_type  = ("int" | "char") ("*")*
+type_suffix= ( ("[" num "]") type_suffix )?
 func       = "(" params? ")" block
-params     = "int" ("*")* ident ("," params)*
+params     = type ident ("," params)*
 block      = "{" stmt* "}"
 
 stmt       = expr ";"
@@ -11,8 +13,7 @@ stmt       = expr ";"
              | "if" "(" expr ")" stmt ("else" stmt)?
              | "while" "(" expr ")" stmt
              | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-             | "int" ("*")* ident type_suffix ";"
-type_suffix= ( ("[" num "]") type_suffix )?
+             | base_type ident type_suffix ";"
 
 expr       = assign
 assign     = equality ("=" assign)?

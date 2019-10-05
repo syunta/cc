@@ -93,5 +93,6 @@ try 99 "int main() { int a[5][5]; *(*(a+3)+1)=99; a[1][3]; }"
 try 8 "int x; int main() { x=8; x; }"
 try 10 "int x; int y; int main() { x=3; y=7; x+y; }"
 try 20 "int x[20]; int y; int main() { x[10]=10; x[10]*2; }"
+try 5 "int main() { char x[3]; x[0] = -1; x[1]=2; int y; y=4; return x[0]+x[1]+y; }"
 
 echo OK

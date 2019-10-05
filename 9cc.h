@@ -30,6 +30,7 @@ struct Token {
 typedef enum {
     INT,
     PTR,
+    CHAR,
     ARRAY,
 } TypeKind;
 
@@ -156,3 +157,4 @@ Type *new_type(TypeKind type);
 Type *new_array_type(size_t len, Type *type);
 Type *new_pointer_to(Type *type);
 bool is_ref(Type *type);
+bool is_int(Type *type);

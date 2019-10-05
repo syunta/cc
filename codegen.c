@@ -2,10 +2,13 @@
 
 int label_count = 0;
 
-char *reg64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *reg8[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 char *reg32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+char *reg64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 char *reg_of(size_t size, int idx) {
+    if (size == 1)
+        return reg8[idx];
     if (size == 4)
         return reg32[idx];
     if (size == 8)
@@ -20,6 +23,8 @@ void gen_save_from(char* reg) {
 }
 
 void gen_load(Node *node) {
+    if (node->type->size == 1)
+        printf("  movsx rax, byte ptr [rax]\n");
     if (node->type->size == 4)
         printf("  movsxd rax, dword ptr [rax]\n");
     if (node->type->size == 8)

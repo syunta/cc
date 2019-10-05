@@ -44,6 +44,9 @@ Type *consume_type() {
     if (consume("int")) {
         type = new_type(INT);
     }
+    if (consume("char")) {
+        type = new_type(CHAR);
+    }
     return type;
 }
 
@@ -106,7 +109,7 @@ bool is_alnum(char p) {
 }
 
 char *is_keyword(char *p) {
-    char *keywords[] = { "return", "if", "else", "while", "for", "int", "sizeof" };
+    char *keywords[] = { "return", "if", "else", "while", "for", "int", "char", "sizeof" };
 
     for (int i = 0; i < sizeof(keywords) / sizeof(*keywords); i++) {
         int len = strlen(keywords[i]);
