@@ -168,6 +168,17 @@ Token *tokenize() {
             continue;
         }
 
+        if (strchr("\"", *p)) {
+            p++;
+            char *q = p++;
+            while(!strchr("\"", *p)) {
+                p++;
+            }
+            p++;
+            cur = new_token(TK_STRING, cur, q, p - q - 1);
+            continue;
+        }
+
         error_at(token->str, "トークナイズできません");
     }
 
